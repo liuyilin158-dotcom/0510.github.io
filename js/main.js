@@ -116,6 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initComicObserver();
   initMusicToggle();
   initLetterScene();
+  tryAutoPlayBGM();
 });
 
 /* ─── 一、樱花花瓣入场动画 ─── */
@@ -205,7 +206,6 @@ function initPetals() {
       intro.classList.add('hidden');
       document.getElementById('main').classList.remove('hidden');
       startMapSequence();
-      tryAutoPlayBGM();
     }, 1000);
   }, 4500);
 }
@@ -426,8 +426,10 @@ function tryAutoPlayBGM() {
   const bgm = document.getElementById('bgm');
   bgm.volume = 0.4;
   bgm.play().catch(() => {
-    // 浏览器阻止自动播放，等待用户第一次触摸
-    document.addEventListener('touchstart', () => bgm.play(), { once: true });
+    // 浏览器阻止自动播放，等待用户第一次交互（触摸或点击均可）
+    const resume = () => bgm.play();
+    document.addEventListener('touchstart', resume, { once: true });
+    document.addEventListener('click', resume, { once: true });
   });
 }
 
@@ -437,6 +439,14 @@ function initMusicToggle() {
   let muted = false;
 
   btn.addEventListener('click', () => {
+    // 若音乐还未开始（自动播放被拦截），点击按钮直接启动播放
+    if (bgm.paused) {
+      bgm.play();
+      muted = false;
+      bgm.muted = false;
+      btn.classList.remove('muted');
+      return;
+    }
     muted = !muted;
     bgm.muted = muted;
     btn.classList.toggle('muted', muted);
