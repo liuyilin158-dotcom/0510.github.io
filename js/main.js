@@ -212,11 +212,11 @@ function initPetals() {
 
 /* ─── 二、地图点亮序列 + 导览气泡 ─── */
 function startMapSequence() {
-  const dots      = document.querySelectorAll('.loc-dot');
+  const dots       = document.querySelectorAll('.loc-dot');
   const routeLines = document.getElementById('route-lines');
-  const bubble    = document.getElementById('guide-bubble');
+  const bubble     = document.getElementById('guide-bubble');
   const bubbleText = document.getElementById('guide-bubble-text');
-  const guide     = document.getElementById('map-guide');
+  const guide      = document.getElementById('map-guide');
 
   // 离开 japan 模块时隐藏导览角色
   new IntersectionObserver(
@@ -236,27 +236,38 @@ function startMapSequence() {
   const totalDelay = 500 + (dots.length - 1) * 320 + 400;
   setTimeout(() => bubble.classList.add('visible'), totalDelay);
 
-  // 给每个标记点插入透明大圆，扩大移动端触控热区至 44px
-  dots.forEach((dot) => {
-    const hitArea = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    hitArea.setAttribute('r', '22');
-    hitArea.setAttribute('fill', 'transparent');
-    hitArea.style.cursor = 'pointer';
-    dot.insertBefore(hitArea, dot.firstChild);
-  });
-
-  // 点击地点：气泡换成该地点导览词，短暂停留后进入场景
+  // 点击地点：显示波纹反馈 + 更新气泡 + 进入场景
   dots.forEach((dot, i) => {
     dot.addEventListener('click', () => {
+      // 波纹反馈：在点击处创建一个短暂扩散圆
+      showTapFeedback(dot);
+
+      // 气泡换成该地点导览词
       bubbleText.textContent = LOCATIONS[i].mapGuide;
       bubble.classList.remove('visible');
       requestAnimationFrame(() => requestAnimationFrame(() => {
         bubble.classList.add('visible');
       }));
+
       setTimeout(() => openScene(i), 900);
     });
   });
 }
+
+// 点击波纹反馈：在 SVG 标记点上叠加一个扩散圆环，0.6s 后自动移除
+function showTapFeedback(dot) {
+  const ripple = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  ripple.setAttribute('r', '4');
+  ripple.setAttribute('fill', 'none');
+  ripple.setAttribute('stroke', '#c9845a');
+  ripple.setAttribute('stroke-width', '2');
+  ripple.style.transformOrigin = 'center';
+  ripple.style.animation = 'tapRipple 0.6s ease-out forwards';
+  ripple.style.pointerEvents = 'none';
+  dot.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 650);
+}
+
 
 /* ─── 三、场景弹出（含照片滑动 + 气泡对话）─── */
 function openScene(index) {
