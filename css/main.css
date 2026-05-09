@@ -28,6 +28,9 @@ html, body {
   background: var(--cream);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
+  /* 消除 iOS/安卓双击缩放带来的 300ms click 延迟 */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .hidden {
@@ -197,6 +200,9 @@ html, body {
   height: calc(100vh - 140px);
   max-height: calc(100vh - 140px);
   filter: drop-shadow(0 2px 8px rgba(138, 99, 71, 0.12));
+  /* 确保 SVG 整体可接收触摸事件，防止穿透 */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* 地图路线动画 */
@@ -221,6 +227,16 @@ html, body {
   opacity: 0;
   transform-origin: center;
   transition: transform 0.15s;
+  /* 修复 SVG pointer-events 穿透：含透明填充区域也响应事件 */
+  pointer-events: all;
+  /* 消除移动端 300ms click 延迟 */
+  touch-action: manipulation;
+  /* 去除 iOS/安卓 tap 蓝色高亮 */
+  -webkit-tap-highlight-color: transparent;
+  /* 禁止长按呼出系统菜单干扰点击 */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .loc-dot.visible { opacity: 1; }

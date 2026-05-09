@@ -237,20 +237,44 @@ function startMapSequence() {
   setTimeout(() => bubble.classList.add('visible'), totalDelay);
 
   // 点击地点：显示波纹反馈 + 更新气泡 + 进入场景
+  // 同时兼容 click（桌面）和 touchend（iOS/安卓），防止双触发
   dots.forEach((dot, i) => {
-    dot.addEventListener('click', () => {
-      // 波纹反馈：在点击处创建一个短暂扩散圆
-      showTapFeedback(dot);
+    let touchStartX = 0, touchStartY = 0, touchMoved = false;
 
-      // 气泡换成该地点导览词
+    const activate = () => {
+      showTapFeedback(dot);
       bubbleText.textContent = LOCATIONS[i].mapGuide;
       bubble.classList.remove('visible');
       requestAnimationFrame(() => requestAnimationFrame(() => {
         bubble.classList.add('visible');
       }));
-
       setTimeout(() => openScene(i), 900);
-    });
+    };
+
+    // 记录触摸起始点，区分 tap 和 scroll
+    dot.addEventListener('touchstart', (e) => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      touchMoved  = false;
+    }, { passive: true });
+
+    // 超过 8px 视为滑动，不触发点击
+    dot.addEventListener('touchmove', (e) => {
+      if (Math.abs(e.touches[0].clientX - touchStartX) > 8 ||
+          Math.abs(e.touches[0].clientY - touchStartY) > 8) {
+        touchMoved = true;
+      }
+    }, { passive: true });
+
+    // touchend 主入口：preventDefault 阻止合成 click，避免双触发
+    dot.addEventListener('touchend', (e) => {
+      if (touchMoved) return;
+      e.preventDefault();
+      activate();
+    }, { passive: false });
+
+    // click 作为桌面端及非触摸设备的兜底
+    dot.addEventListener('click', activate);
   });
 }
 
