@@ -236,6 +236,15 @@ function startMapSequence() {
   const totalDelay = 500 + (dots.length - 1) * 320 + 400;
   setTimeout(() => bubble.classList.add('visible'), totalDelay);
 
+  // 给每个标记点插入透明大圆，扩大移动端触控热区至 44px
+  dots.forEach((dot) => {
+    const hitArea = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    hitArea.setAttribute('r', '22');
+    hitArea.setAttribute('fill', 'transparent');
+    hitArea.style.cursor = 'pointer';
+    dot.insertBefore(hitArea, dot.firstChild);
+  });
+
   // 点击地点：气泡换成该地点导览词，短暂停留后进入场景
   dots.forEach((dot, i) => {
     dot.addEventListener('click', () => {
